@@ -212,17 +212,18 @@ int getSPcores(cudaDeviceProp devProp)
 
 int main(int argc, char *argv[])
 {
-	if (argc < 8) {
+	//argc = 12;//cfractalplus 0 3840 2160 0 0 1000 1 1 16 16 0
+	//argv = new char*[12]{ "cfractalplus", "2", "1920", "1080", "0", "0", "1000", "1", "1", "16", "16", "1" };
+	if (argc < 12) {
 		std::cout << "invalid arguments\n";
 		std::cout << "cfractalplus [type (0: mandelbrot, 1: julia set, 2: burning ship)] [width] [height] [pan x] [pan y] [max iteration] [zoom] [c] [block size x] [block size y] [cpu? 0: no, 1: yes]";
 	}
-	int* c = new int[atoi(argv[1]) * atoi(argv[2])];
-	
-	if (atoi(argv[10]) == 0) {
+	int* c = new int[atoi(argv[2]) * atoi(argv[3])];
+	if (atoi(argv[11]) == 0) {
 		std::cout << "Starting CUDA operations\n";
-		dim3 blockDim(atoi(argv[8]), atoi(argv[9]));
-		dim3 gridDim(atoi(argv[1]) / blockDim.x, atoi(argv[2]) / blockDim.y);
-		cudaError_t cudaStatus = fractalAddCuda(c, new int[1]{ atoi(argv[1]) }, new int[1]{ atoi(argv[2]) }, gridDim, blockDim, atoi(argv[0]), new int[1]{ atoi(argv[5]) }, (double*)(new double[1]{ atof(argv[6]) }), (double*)(new double[1]{ atof(argv[3]) }), ((double*)(new double[1]{ atof(argv[4]) }), (double*)(new double[1]{ atof(argv[7]) })), atoi(argv[1]) * atoi(argv[2]));
+		dim3 blockDim(atoi(argv[9]), atoi(argv[10]));
+		dim3 gridDim(atoi(argv[2]) / blockDim.x, atoi(argv[3]) / blockDim.y);
+		cudaError_t cudaStatus = fractalAddCuda(c, new int[1]{ atoi(argv[2]) }, new int[1]{ atoi(argv[3]) }, gridDim, blockDim, atoi(argv[1]), new int[1]{ atoi(argv[6]) }, (double*)(new double[1]{ atof(argv[7]) }), (double*)(new double[1]{ atof(argv[4]) }), ((double*)(new double[1]{ atof(argv[5]) }), (double*)(new double[1]{ atof(argv[8]) })), atoi(argv[2]) * atoi(argv[3]));
 		if (cudaStatus != cudaSuccess) {
 			fprintf(stderr, "addWithCuda failed!");
 			return 1;
@@ -230,12 +231,12 @@ int main(int argc, char *argv[])
 
 		std::cout << "Finished CUDA operations\n";
 		std::cout << "Writing to file\n";
-		char* filename = "";
+		string filename = "";
 		std::cout << "Filename (needs .ppm at end)? ";
 		std::cin >> filename;
 		ofstream fs(filename);
-		fs << "P3\n" << atoi(argv[1]) << "\n" << atoi(argv[2]) << "\n255\n";
-		for (int i = 0; i < atoi(argv[1]) * atoi(argv[2]); i++) {
+		fs << "P3\n" << atoi(argv[2]) << "\n" << atoi(argv[3]) << "\n255\n";
+		for (int i = 0; i < atoi(argv[2]) * atoi(argv[3]); i++) {
 			fs << c[i] << " " << c[i] << " " << c[i] << "\n";
 		}
 		fs.close();
@@ -250,19 +251,19 @@ int main(int argc, char *argv[])
 	}
 	else {
 		std::cout << "Starting CPU operations\n";
-		switch (atoi(argv[0])) {
-			case 0: c = cpuMandelbrotKernel(new int[1]{ atoi(argv[1]) }, new int[1]{ atoi(argv[2]) }, new int[1]{ atoi(argv[5]) }, (double*)(new double[1]{ atof(argv[6]) }), (double*)(new double[1]{ atof(argv[3]) })); break;
-			case 1: c = cpuJuliaKernel(new int[1]{ atoi(argv[1]) }, new int[1]{ atoi(argv[2]) }, new int[1]{ atoi(argv[5]) }, (double*)(new double[1]{ atof(argv[6]) }), (double*)(new double[1]{ atof(argv[3]) }), (double*)(new double[1]{ atof(argv[7]) })); break;
-			case 2: c = cpuBurningShipKernel(new int[1]{ atoi(argv[1]) }, new int[1]{ atoi(argv[2]) }, new int[1]{ atoi(argv[5]) }, (double*)(new double[1]{ atof(argv[6]) }), (double*)(new double[1]{ atof(argv[3]) })); break;
+		switch (atoi(argv[1])) {
+			case 0: c = cpuMandelbrotKernel(new int[1]{ atoi(argv[2]) }, new int[1]{ atoi(argv[3]) }, new int[1]{ atoi(argv[6]) }, (double*)(new double[1]{ atof(argv[7]) }), (double*)(new double[1]{ atof(argv[4]) })); break;
+			case 1: c = cpuJuliaKernel(new int[1]{ atoi(argv[2]) }, new int[1]{ atoi(argv[3]) }, new int[1]{ atoi(argv[6]) }, (double*)(new double[1]{ atof(argv[7]) }), (double*)(new double[1]{ atof(argv[4]) }), (double*)(new double[1]{ atof(argv[8]) })); break;
+			case 2: c = cpuBurningShipKernel(new int[1]{ atoi(argv[2]) }, new int[1]{ atoi(argv[3]) }, new int[1]{ atoi(argv[6]) }, (double*)(new double[1]{ atof(argv[7]) }), (double*)(new double[1]{ atof(argv[4]) })); break;
 		}
 		std::cout << "Finished CPU operations\n";
 		std::cout << "Writing to file\n";
-		char* filename = "";
+		string filename = "";
 		std::cout << "Filename (needs .ppm at end)? ";
 		std::cin >> filename;
 		ofstream fs(filename);
-		fs << "P3\n" << atoi(argv[1]) << "\n" << atoi(argv[2]) << "\n255\n";
-		for (int i = 0; i < atoi(argv[1]) * atoi(argv[2]); i++) {
+		fs << "P3\n" << atoi(argv[2]) << "\n" << atoi(argv[3]) << "\n255\n";
+		for (int i = 0; i < atoi(argv[2]) * atoi(argv[3]); i++) {
 			fs << c[i] << " " << c[i] << " " << c[i] << "\n";
 		}
 		fs.close();
